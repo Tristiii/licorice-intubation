@@ -114,7 +114,8 @@ dtb_lic <- tbl_summary(
   ) |>
   remove_abbreviation()
 
-dtb_lic
+dtb_lic |>
+  as_kable()
 ```
 
 \clearpage
@@ -270,7 +271,8 @@ out_lic <- tbl_summary(
     )
   )
 
-out_lic
+out_lic |>
+  as_kable()
 ```
 
 \clearpage
