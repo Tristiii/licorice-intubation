@@ -3,8 +3,7 @@ title: "Preoperative licorice reduces complications of intubation"
 author: "Tristan Tangdiongga"
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
-  html_document: default
+  github_document: default
 header-includes:
   - \usepackage{float}
 ---
