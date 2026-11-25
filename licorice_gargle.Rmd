@@ -1,0 +1,375 @@
+---
+title: "Preoperative licorice reduces complications of intubation"
+author: "Tristan Tangdiongga"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+header-includes:
+  - \usepackage{float}
+---
+
+## Introduction
+
+In this document, a dataset from a randomized controlled trial (RCT) about the effect of licorice gargle preoperatively will be analysed.
+
+## Prerequisites
+
+The dataset that was used is the `licorice_gargle` dataset from the `medicaldata` library. Furthermore, the packages `tidyverse` and `gtsummary` were used for the data manipulation and statistical analysis, respectively. Lastly, the package `patchwork` was used for the formatting of the figures.
+
+```{r message = FALSE}
+library(tidyverse)
+library(gtsummary)
+library(patchwork)
+
+library(medicaldata)
+lic <- licorice_gargle
+```
+
+```{r echo = FALSE}
+t_lic <- lic |>
+  rename(
+    gender = preOp_gender,
+    asa = preOp_asa,
+    bmi = preOp_calcBMI,
+    age = preOp_age,
+    mallampati = preOp_mallampati,
+    smoking = preOp_smoking,
+    pain = preOp_pain,
+    surgery_size = intraOp_surgerySize
+  )
+```
+
+## Descriptive statistics
+
+The descriptive statistics of this dataset is given in table 1. 236 adult patients undergoing elective thoracic surgery requiring a double-lumen endotracheal tube were included. Patients were randomized to placebo (sugar 5g) and licorice (0.5g). No significant differences in demographics were reported.
+
+The table was made with the `tbl_summary()` function of the `gtsummary` package.
+
+## Outcomes
+
+The outcomes that were analyzed are cough, sore throat and pain swallowing at various time points. These are shown in table 2. Furthermore, the outcomes were plotted against the time, shown in figure 1.
+
+The table was made with the `tbl_summary()` function of the `gtsummary` package. The figures were made with the `ggplot()` function of the `tidyverse` package, together with `patchwork`.
+
+## Conclusion
+
+Preoperative licorice reduces the postoperative cough, throat pain (p < 0.01) and swallow pain (p < 0.001) after intubation.
+
+```{r echo = FALSE, fig.pos = 'H'}
+des_lic <- t_lic |>
+  mutate(
+    gender = recode(
+      gender,
+      `0` = 'Male',
+      `1` = 'Female'
+    ),
+    smoking = recode(
+      smoking,
+      `1` = 'Current',
+      `2` = 'Past',
+      `3` = 'Never'
+    ),
+    treat = factor(treat, levels = c(0, 1)),
+    treat = recode(
+      treat,
+      `0` = 'Sugar 5g',
+      `1` = 'Licorice 0.5g'
+    )
+  )
+  
+  
+dtb_lic <- tbl_summary(
+    data = des_lic,
+    by = treat,
+    statistic = list(
+      all_continuous() ~ '{mean}',
+      all_categorical() ~ '{n} ({p}%)'
+    ),
+    missing = 'no',
+    include = c(gender, asa, bmi, age, mallampati, smoking, pain),
+    label = list(
+      gender ~ 'Gender',
+      asa ~ 'ASA',
+      bmi ~ 'BMI',
+      age ~ 'Age',
+      mallampati ~ 'Mallampati',
+      smoking ~ 'Smoking',
+      pain ~ 'Preoperative pain'
+    )
+  ) |>
+  
+  add_p() |>
+  add_ci(
+    pattern = '{stat} ({ci})',
+    include = all_continuous()
+  ) |>
+  
+  modify_caption('Demographics characteristics by randomized group') |>
+  modify_header(
+    all_stat_cols() ~ '**{level}** (N = {n})'
+  ) |>
+  modify_footnote(
+    all_stat_cols() ~ 'Mean (95% CI); n (%)',
+    p.value ~ NA
+  ) |>
+  remove_abbreviation()
+
+dtb_lic
+```
+
+\clearpage
+
+```{r echo = FALSE, fig.pos = 'H'}
+otb_lic <- t_lic |>
+  mutate(
+    surgery_size = factor(surgery_size, levels = c(1, 2, 3)),
+    surgery_size = recode(
+      surgery_size,
+      `1` = 'Small',
+      `2` = 'Medium',
+      `3` = 'Large'
+    ),
+    extubation_cough = factor(extubation_cough, levels = c(0, 1, 2, 3)),
+    extubation_cough = recode(
+      extubation_cough,
+      `0` = 'No cough',
+      `1` = 'Mild',
+      `2` = 'Moderate',
+      `3` = 'Severe'
+    ),
+    pacu30min_cough = factor(pacu30min_cough, levels = c(0, 1, 2, 3)),
+    pacu30min_cough = recode(
+      pacu30min_cough,
+      `0` = 'No cough',
+      `1` = 'Mild',
+      `2` = 'Moderate',
+      `3` = 'Severe'
+    ),
+    pacu90min_cough = factor(pacu90min_cough, levels = c(0, 1, 2, 3)),
+    pacu90min_cough = recode(
+      pacu90min_cough,
+      `0` = 'No cough',
+      `1` = 'Mild',
+      `2` = 'Moderate',
+      `3` = 'Severe'
+    ),
+    postOp4hour_cough = factor(postOp4hour_cough, levels = c(0, 1, 2, 3)),
+    postOp4hour_cough = recode(
+      postOp4hour_cough,
+      `0` = 'No cough',
+      `1` = 'Mild',
+      `2` = 'Moderate',
+      `3` = 'Severe'
+    ),
+    pod1am_cough = factor(pod1am_cough, levels = c(0, 1, 2, 3)),
+    pod1am_cough = recode(
+      pod1am_cough,
+      `0` = 'No cough',
+      `1` = 'Mild',
+      `2` = 'Moderate',
+      `3` = 'Severe'
+    ),
+    treat = factor(treat, levels = c(0, 1)),
+    treat = recode(
+      treat,
+      `0` = 'Sugar 5g',
+      `1` = 'Licorice 0.5g'
+    )
+  )
+
+out_lic <- tbl_summary(
+  data = otb_lic,
+  by = treat,
+  missing = 'no',
+  statistic = list(
+    all_continuous() ~ '{mean}',
+    all_categorical() ~ '{n} ({p}%)'
+  ),
+  include = c(
+    surgery_size, extubation_cough,
+    pacu30min_cough, pacu30min_throatPain, pacu30min_swallowPain,
+    pacu90min_cough, pacu90min_throatPain,
+    postOp4hour_cough, postOp4hour_throatPain,
+    pod1am_cough, pod1am_throatPain
+  ),
+  type = list(
+    matches('throatPain') ~ 'continuous'
+  ),
+  label = list(
+    surgery_size ~ 'Surgery size',
+    matches('cough') ~ 'Cough',
+    matches('throatPain') ~ 'Throat pain (0-10)',
+    matches('swallowPain') ~ 'Swallow pain (0-10)',
+    extubation_cough ~ 'Extubation cough'
+  )
+) |>
+  
+  add_p() |>
+  add_ci(
+    pattern = '{stat} ({ci})',
+    include = all_continuous()
+  ) |>
+  
+  modify_table_body(
+    ~ .x |>
+      add_row(
+        label = 'Intra-op',
+        .before = which(.x$variable == 'surgery_size')[1]
+      )
+  ) |>
+  modify_table_body(
+    ~.x |>
+      add_row(
+        label = '30m post-op',
+        .before = which(.x$variable == 'pacu30min_cough')[1]
+      )
+  ) |>
+  modify_table_body(
+    ~.x |>
+      add_row(
+        label = '90m post-op',
+        .before = which(.x$variable == 'pacu90min_cough')[1]
+      )
+  ) |>
+  modify_table_body(
+    ~.x |>
+      add_row(
+        label = '4h post-op',
+        .before = which(.x$variable == 'postOp4hour_cough')[1]
+      )
+  ) |>
+  modify_table_body(
+    ~.x |>
+      add_row(
+        label = '1st morning post-op',
+        .before = which(.x$variable == 'pod1am_cough')[1]
+      )
+  ) |>
+  
+  modify_caption('Outcomes by randomized group') |>
+  modify_header(
+    label = '**Outcome**',
+    all_stat_cols() ~ '**{level}** (N = {n})'
+  ) |>
+  modify_footnote(
+    all_stat_cols() ~ 'Mean (95% CI); n (%)',
+    p.value ~ NA
+  ) |>
+  remove_abbreviation() |>
+  
+  modify_bold(
+    columns = label,
+    rows = (
+      label %in% c(
+        'Intra-op',
+        '30m post-op',
+        '90m post-op',
+        '4h post-op',
+        '1st morning post-op'
+      )
+    )
+  )
+
+out_lic
+```
+
+\clearpage
+
+```{r echo = FALSE, message = FALSE}
+scptb_lic_1 <- t_lic |>
+  rename(
+    `0` = pain,
+    `0.5` = pacu30min_throatPain,
+    `1.5` = pacu90min_throatPain,
+    `4` = postOp4hour_throatPain,
+    `next morning` = pod1am_throatPain
+  ) |>
+  pivot_longer(
+    cols = c(`0`, `0.5`, `1.5`, `4`, `next morning`),
+    names_to = 'time',
+    values_to = 'throat_pain',
+  ) |>
+  mutate(
+    treat = factor(treat, levels = c(0, 1)),
+    time = factor(time, levels = c(0, 0.5, 1.5, 4, 'next morning'))
+  ) |>
+  select(treat, time, throat_pain) |>
+  group_by(treat, time) |>
+  summarize(
+    avg_pain = mean(throat_pain, na.rm = TRUE),
+    std_dev = sd(throat_pain, na.rm = TRUE)
+  ) |>
+  mutate(
+    treat = recode(
+      treat,
+      `0` = 'Sugar 5g',
+      `1` = 'Licorice 0.5g'
+    )
+  )
+
+scp_lic_1 <- scptb_lic_1 |>
+  ggplot(
+    aes(x = time, y = avg_pain, color = treat, shape = treat, group = treat)
+  ) +
+  geom_point() +
+  geom_line() +
+  labs(
+    x = 'Time (hours)', y = 'Average throat pain (0-10)',
+    color = 'Treatment', shape = 'Treatment'
+  )
+
+# Boxplot 1 (time vs. cough)
+scptb_lic_2 <- t_lic |>
+  rename(
+    `0` = extubation_cough,
+    `0.5` = pacu30min_cough,
+    `1.5` = pacu90min_cough,
+    `4` = postOp4hour_cough,
+    `next morning` = pod1am_cough
+  ) |>
+  pivot_longer(
+    cols = c(`0`, `0.5`, `1.5`, `4`, `next morning`),
+    names_to = 'time',
+    values_to = 'cough',
+  ) |>
+  mutate(
+    treat = factor(treat, levels = c(0, 1)),
+    time = factor(time, levels = c(0, 0.5, 1.5, 4, 'next morning'))
+  ) |>
+  select(treat, time, cough) |>
+  group_by(treat, time) |>
+  summarize(
+    avg_cough = mean(cough, na.rm = TRUE),
+    std_dev = sd(cough, na.rm = TRUE)
+  ) |>
+  mutate(
+    treat = recode(
+      treat,
+      `0` = 'Sugar 5g',
+      `1` = 'Licorice 0.5g'
+    )
+  )
+
+scp_lic_2 <- scptb_lic_2 |>
+  ggplot(
+    aes(x = time, y = avg_cough, color = treat, shape = treat, group = treat)
+  ) +
+  geom_point() +
+  geom_line() +
+  labs(
+    x = 'Time (hours)', y = 'Average cough (1-4)',
+    color = 'Treatment', shape = 'Treatment'
+  )
+```
+
+```{r echo = FALSE, fig.pos = 'H', fig.height = 9}
+(scp_lic_1 / scp_lic_2) +
+  plot_layout(guide = 'collect') +
+  plot_annotation(
+    title = 'Figure 1: trends of outcomes',
+    subtitle = 'N = 235',
+    caption = 'N.B.: the axis of time (x-axis) is not proportional.',
+    theme = theme(legend.position = 'bottom')
+  )
+```
